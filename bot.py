@@ -167,7 +167,7 @@ async def second_response(update, context):
     else:
         flag = False
         await update.message.reply_text(
-            "Вы ввели не то, что нужно. Попробуйте ещё раз!"2ц)
+            "Вы ввели не то, что нужно. Попробуйте ещё раз!")
     logger.info(weather)
     if flag:
         await update.message.reply_text("Если вы нашли то, что вы хотели то введите команду /stop.", reply_markup=markup1)
