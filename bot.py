@@ -103,21 +103,23 @@ def get_entertainment_info(lat, lon):
     return entertainment_info
 
 
+
 async def start(update, context):
     await update.message.reply_text(
         "Я бот-справочник. Помогу вам определится с местом, в которое можно сходить, если не знаете, что делать\n"
         "Для этого выполните несколько действий, пожалуйста!\n"
         "Вы можете закончить с этим, послав команду /stop.\n"
-        "Отправте пожалуйста свою геопозицию!❤️"
+        "Отправте пожалуйста свою геопозицию!❤️", reply_markup=ReplyKeyboardRemove()
     )
     return 1
 
 
-async def receive_location(update: Update, context: CallbackContext):
-    loc = str(update.message.location).lstrip('Location').strip('()').split('=')
+async def receive_location(update, context):
+    locat = update.message.location
+    print(locat)
+    loc = str(locat).lstrip('Location').strip('()').split('=')
     del loc[0]
     l = ' '.join(loc).split(', longitude ')
-    print(l)
     m.append(float(l[0]))
     m.append(float(l[1]))
     await update.message.reply_text("Мы нашли ближайшие к вам места, в которые вы можете сходить.\n"
@@ -130,6 +132,7 @@ async def second_response(update, context):
     # Ответ на второй вопрос.
     # Мы можем его сохранить в базе данных или переслать куда-либо.
     weather = update.message.text
+    flag = True
     if weather == 'развлечения':
         entert_lst = list(get_entertainment_info(m[0], m[1]))
         await update.message.reply_text(f'Вот несколько развлекательных мест для вас:\n'
@@ -153,7 +156,7 @@ async def second_response(update, context):
                                         f' ~ {eat_lst[3]}\n'
                                         f' ~ {eat_lst[4]}\n'
                                         f' ~ {eat_lst[5]}\n')
-    else:
+    elif weather == 'культура':
         cultur_lst = list(get_culture_info(m[0], m[1]))
         await update.message.reply_text(f'Вот несколько мест, где вы сможете поесть:\n'
                                         f' ~ {cultur_lst[0]}\n'
@@ -161,12 +164,17 @@ async def second_response(update, context):
                                         f' ~ {cultur_lst[3]}\n'
                                         f' ~ {cultur_lst[4]}\n'
                                         f' ~ {cultur_lst[5]}\n')
+    else:
+        flag = False
+        await update.message.reply_text(
+            "Вы ввели не то, что нужно. Попробуйте ещё раз!"2ц)
     logger.info(weather)
-    await update.message.reply_text("Если вы нашли то, что вы хотели то введите команду /stop.", reply_markup=markup1)
+    if flag:
+        await update.message.reply_text("Если вы нашли то, что вы хотели то введите команду /stop.", reply_markup=markup1)
 
 
 async def stop(update, context):
-    await update.message.reply_text("Всего доброго!")
+    await update.message.reply_text("Всего доброго!", reply_markup=ReplyKeyboardRemove())
     return ConversationHandler.END
 
 
