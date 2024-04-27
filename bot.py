@@ -1,6 +1,5 @@
 import logging
-from telegram import Update
-from telegram.ext import CallbackContext
+import sys
 import requests
 from telegram import ReplyKeyboardMarkup
 from telegram.ext import Application, MessageHandler, ConversationHandler, filters
@@ -23,8 +22,6 @@ markup1 = ReplyKeyboardMarkup(reply_keyboard1, one_time_keyboard=True)
 
 m = []
 
-import requests
-
 
 def get_culture_info(lat, lon):
     culture_info = set()
@@ -32,7 +29,8 @@ def get_culture_info(lat, lon):
     response = requests.get(url).json()
     for i in response['features']:
         try:
-            culture_info.add((i['properties']['name'], i['properties']['website']))
+            culture_info.add(
+                (i['properties']['name'], i['properties']['website'], i['properties']['lon'], i['properties']['lat']))
         except:
             pass
     return culture_info
@@ -47,7 +45,8 @@ def get_nuturel_info(lat, lon):
         info = response.json()
         for j in info['features']:
             try:
-                f.add((j['properties']['name'], j['properties']['website']))
+                f.add((j['properties']['name'], j['properties']['website'], j['properties']['lon'],
+                       j['properties']['lat']))
             except:
                 pass
     return f
@@ -59,21 +58,24 @@ def get_food_info(lat, lon):
     response = requests.get(url)
     for i in response.json()['features']:
         try:
-            food_info.add((i['properties']['name'], i['properties']['website']))
+            food_info.add(
+                (i['properties']['name'], i['properties']['website'], i['properties']['lon'], i['properties']['lat']))
         except:
             pass
     url_2 = f"https://api.geoapify.com/v2/places?categories=catering.fast_food&filter=circle:{lon},{lat},50000&bias=proximity:{lon},{lat}&limit=20&apiKey=23b70e7a81254e459c88d574598a37ab"
     response_2 = requests.get(url_2)
     for j in response_2.json()['features']:
         try:
-            food_info.add((j['properties']['name'], j['properties']['website']))
+            food_info.add(
+                (j['properties']['name'], j['properties']['website'], j['properties']['lon'], j['properties']['lat']))
         except:
             pass
     url_3 = f"https://api.geoapify.com/v2/places?categories=catering.cafe&filter=circle:{lon},{lat},50000&bias=proximity:{lon},{lat}&limit=20&apiKey=23b70e7a81254e459c88d574598a37ab"
     response_3 = requests.get(url_3)
     for l in response_3.json()['features']:
         try:
-            food_info.add((l['properties']['name'], l['properties']['website']))
+            food_info.add(
+                (l['properties']['name'], l['properties']['website'], l['properties']['lon'], l['properties']['lat']))
         except:
             pass
     return food_info
@@ -85,18 +87,18 @@ def get_entertainment_info(lat, lon):
     response = requests.get(url)
     for j in response.json()['features']:
         try:
-            entertainment_info.add((j['properties']['name'], j['properties']['website']))
+            entertainment_info.add(
+                (j['properties']['name'], j['properties']['website'], j['properties']['lon'], j['properties']['lat']))
         except:
             pass
     url_2 = f"https://api.geoapify.com/v2/places?categories=entertainment.water_park&filter=circle:{lon},{lat},50000&bias=proximity:{lon},{lat}&limit=20&apiKey=23b70e7a81254e459c88d574598a37ab"
     response_2 = requests.get(url_2)
     for i in response_2.json()['features']:
         try:
-            entertainment_info.add((i['properties']['name'], i['properties']['website']))
-
+            entertainment_info.add(
+                (i['properties']['name'], i['properties']['website'], i['properties']['lon'], i['properties']['lat']))
         except:
             pass
-    print(entertainment_info)
     return entertainment_info
 
 
@@ -131,37 +133,90 @@ async def second_response(update, context):
     flag = True
     if weather == 'развлечения':
         entert_lst = list(get_entertainment_info(locat[0], locat[-1]))
+        print(entert_lst)
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={entert_lst[0][2]},{entert_lst[0][3]},pm2gnm~{entert_lst[1][2]},{entert_lst[1][3]},pm2rdm~{entert_lst[2][2]},{entert_lst[2][3]},pm2lbm&l=map"
+        response = requests.get(map_request)
+
+        if not response:
+            print("Ошибка выполнения запроса:")
+            print(map_request)
+            print("Http статус:", response.status_code, "(", response.reason, ")")
+            sys.exit(1)
+        map_file = "map.png"
+        with open(map_file, "wb") as file:
+            file.write(response.content)
+        await update.message.reply_photo(map_file)
         await update.message.reply_text(f'Вот несколько развлекательных мест для вас:\n'
-                                        f' ~ {entert_lst[0][0]}\n'
-                                        f'  {entert_lst[0][-1]}\n'
-                                        f' ~ {entert_lst[1][0]}\n'
-                                        f'  {entert_lst[1][-1]}\n'
-                                        f' ~ {entert_lst[2][0]}\n'
-                                        f'  {entert_lst[2][-1]}\n')
+                                        f'🟢{entert_lst[0][0]}\n'
+                                        f'  {entert_lst[0][1]}\n'
+                                        f'🔴{entert_lst[1][0]}\n'
+                                        f'  {entert_lst[1][1]}\n'
+                                        f'🔵{entert_lst[2][0]}\n'
+                                        f'  {entert_lst[2][1]}\n')
 
     elif weather == 'природа':
         nature_lst = list(get_nuturel_info(locat[0], locat[-1]))
-        print(nature_lst)
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={nature_lst[0][2]},{nature_lst[0][3]},pm2gnm~{nature_lst[1][2]},{nature_lst[1][3]},pm2rdm~{nature_lst[2][2]},{nature_lst[2][3]},pm2lbm&l=map"
+        response = requests.get(map_request)
+
+        if not response:
+            print("Ошибка выполнения запроса:")
+            print(map_request)
+            print("Http статус:", response.status_code, "(", response.reason, ")")
+            sys.exit(1)
+        map_file = "map.png"
+        with open(map_file, "wb") as file:
+            file.write(response.content)
+        await update.message.reply_photo(map_file)
         await update.message.reply_text(f'Вот несколько мест, связанных с природой, для вас:\n'
-                                        f' ~ {nature_lst[0]}\n'
-                                        f' ~ {nature_lst[1]}\n'
-                                        f' ~ {nature_lst[3]}\n')
+                                        f'🟢{nature_lst[0][0]}\n'
+                                        f'  {nature_lst[0][1]}\n'
+                                        f'🔴{nature_lst[1][0]}\n'
+                                        f'  {nature_lst[1][1]}\n'
+                                        f'🔵{nature_lst[2][0]}\n'
+                                        f'  {nature_lst[2][1]}\n'
+                                        )
     elif weather == 'еда':
         eat_lst = list(get_food_info(locat[0], locat[-1]))
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={eat_lst[0][2]},{eat_lst[0][3]},pm2gnm~{eat_lst[1][2]},{eat_lst[1][3]},pm2rdm~{eat_lst[2][2]},{eat_lst[2][3]},pm2lbm&l=map"
+        response = requests.get(map_request)
+
+        if not response:
+            print("Ошибка выполнения запроса:")
+            print(map_request)
+            print("Http статус:", response.status_code, "(", response.reason, ")")
+            sys.exit(1)
+        map_file = "map.png"
+        with open(map_file, "wb") as file:
+            file.write(response.content)
+        await update.message.reply_photo(map_file)
         await update.message.reply_text(f'Вот несколько мест, где вы сможете поесть:\n'
-                                        f' ~ {eat_lst[0]}\n'
-                                        f' ~ {eat_lst[1]}\n'
-                                        f' ~ {eat_lst[3]}\n'
-                                        f' ~ {eat_lst[4]}\n'
-                                        f' ~ {eat_lst[5]}\n')
+                                        f'🟢{eat_lst[0][0]}\n'
+                                        f'  {eat_lst[0][1]}\n'
+                                        f'🔴{eat_lst[1][0]}\n'
+                                        f'  {eat_lst[1][1]}\n'
+                                        f'🔵{eat_lst[2][0]}\n'
+                                        f'  {eat_lst[2][1]}\n')
     elif weather == 'культура':
         cultur_lst = list(get_culture_info(locat[0], locat[-1]))
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={cultur_lst[0][2]},{cultur_lst[0][3]},pm2gnm~{cultur_lst[1][2]},{cultur_lst[1][3]},pm2rdm~{cultur_lst[2][2]},{cultur_lst[2][3]},pm2lbm&l=map"
+        response = requests.get(map_request)
+        if not response:
+            print("Ошибка выполнения запроса:")
+            print(map_request)
+            print("Http статус:", response.status_code, "(", response.reason, ")")
+            sys.exit(1)
+        map_file = "map.png"
+        with open(map_file, "wb") as file:
+            file.write(response.content)
+        await update.message.reply_photo(map_file)
         await update.message.reply_text(f'Вот несколько мест, где вы сможете поесть:\n'
-                                        f' ~ {cultur_lst[0]}\n'
-                                        f' ~ {cultur_lst[1]}\n'
-                                        f' ~ {cultur_lst[3]}\n'
-                                        f' ~ {cultur_lst[4]}\n'
-                                        f' ~ {cultur_lst[5]}\n')
+                                        f'🟢{cultur_lst[0][0]}\n'
+                                        f'  {cultur_lst[0][1]}\n'
+                                        f'🔴{cultur_lst[1][0]}\n'
+                                        f'  {cultur_lst[1][1]}\n'
+                                        f'🔵{cultur_lst[2][0]}\n'
+                                        f'  {cultur_lst[2][1]}\n')
     else:
         flag = False
         await update.message.reply_text(
@@ -187,9 +242,6 @@ async def close_keyboard(update, context):
 async def help(update, context):
     await update.message.reply_text(
         "Я бот справочник.")
-
-
-
 
 
 def main():
