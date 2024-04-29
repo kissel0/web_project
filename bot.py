@@ -20,8 +20,6 @@ reply_keyboard1 = [['развлечения'], ['природа'], ['еда'], [
 markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
 markup1 = ReplyKeyboardMarkup(reply_keyboard1, one_time_keyboard=True)
 
-m = []
-
 
 def get_culture_info(lat, lon):
     culture_info = set()
@@ -134,7 +132,7 @@ async def second_response(update, context):
     if weather == 'развлечения':
         entert_lst = list(get_entertainment_info(locat[0], locat[-1]))
         print(entert_lst)
-        map_request = f"http://static-maps.yandex.ru/1.x/?pt={entert_lst[0][2]},{entert_lst[0][3]},pm2gnm~{entert_lst[1][2]},{entert_lst[1][3]},pm2rdm~{entert_lst[2][2]},{entert_lst[2][3]},pm2lbm&l=map"
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={locat[-1]},{locat[0]},home~{entert_lst[0][2]},{entert_lst[0][3]},pm2gnm~{entert_lst[1][2]},{entert_lst[1][3]},pm2rdm~{entert_lst[2][2]},{entert_lst[2][3]},pm2lbm&l=map"
         response = requests.get(map_request)
 
         if not response:
@@ -156,7 +154,7 @@ async def second_response(update, context):
 
     elif weather == 'природа':
         nature_lst = list(get_nuturel_info(locat[0], locat[-1]))
-        map_request = f"http://static-maps.yandex.ru/1.x/?pt={nature_lst[0][2]},{nature_lst[0][3]},pm2gnm~{nature_lst[1][2]},{nature_lst[1][3]},pm2rdm~{nature_lst[2][2]},{nature_lst[2][3]},pm2lbm&l=map"
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={locat[-1]},{locat[0]},home~{nature_lst[0][2]},{nature_lst[0][3]},pm2gnm~{nature_lst[1][2]},{nature_lst[1][3]},pm2rdm~{nature_lst[2][2]},{nature_lst[2][3]},pm2lbm&l=map"
         response = requests.get(map_request)
 
         if not response:
@@ -178,7 +176,7 @@ async def second_response(update, context):
                                         )
     elif weather == 'еда':
         eat_lst = list(get_food_info(locat[0], locat[-1]))
-        map_request = f"http://static-maps.yandex.ru/1.x/?pt={eat_lst[0][2]},{eat_lst[0][3]},pm2gnm~{eat_lst[1][2]},{eat_lst[1][3]},pm2rdm~{eat_lst[2][2]},{eat_lst[2][3]},pm2lbm&l=map"
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={locat[-1]},{locat[0]},home~{eat_lst[0][2]},{eat_lst[0][3]},pm2gnm~{eat_lst[1][2]},{eat_lst[1][3]},pm2rdm~{eat_lst[2][2]},{eat_lst[2][3]},pm2lbm&l=map"
         response = requests.get(map_request)
 
         if not response:
@@ -199,7 +197,7 @@ async def second_response(update, context):
                                         f'  {eat_lst[2][1]}\n')
     elif weather == 'культура':
         cultur_lst = list(get_culture_info(locat[0], locat[-1]))
-        map_request = f"http://static-maps.yandex.ru/1.x/?pt={cultur_lst[0][2]},{cultur_lst[0][3]},pm2gnm~{cultur_lst[1][2]},{cultur_lst[1][3]},pm2rdm~{cultur_lst[2][2]},{cultur_lst[2][3]},pm2lbm&l=map"
+        map_request = f"http://static-maps.yandex.ru/1.x/?pt={locat[-1]},{locat[0]},home~{cultur_lst[0][2]},{cultur_lst[0][3]},pm2gnm~{cultur_lst[1][2]},{cultur_lst[1][3]},pm2rdm~{cultur_lst[2][2]},{cultur_lst[2][3]},pm2lbm&l=map"
         response = requests.get(map_request)
         if not response:
             print("Ошибка выполнения запроса:")
